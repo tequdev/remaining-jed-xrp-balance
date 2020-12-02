@@ -269,4 +269,8 @@ export default class balance extends VuexModule {
   get getBalanceData() {
     return this.balanceData
   }
+
+  get getChangeData() {
+    return this.chartDatasets[1].data! as number[]
+  }
 }
