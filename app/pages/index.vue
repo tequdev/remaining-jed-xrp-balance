@@ -60,7 +60,7 @@ export default class extends Vue {
             id: 'y-axis-1',
             position: 'left',
             ticks: {
-              // suggestedMin:0,
+              suggestedMin: 0,
               callback(value, _index, _values) {
                 return value.toLocaleString()
               },
