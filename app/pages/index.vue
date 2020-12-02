@@ -17,31 +17,30 @@ import { ChartDataType } from '../store/balance'
 
 @Component({
   async asyncData() {
-    if (balances.getBalanceData.length === 0) {
-      await balances.fetchBalanceData()
-      console.log('fetch END')
-    }
+    await balances.fetchBalanceData().then(() => {
+      balances.getBalanceDataSet(ChartDataType.BALANCE)
+      balances.getBalanceDataSet(ChartDataType.CHANGE)
+    })
   },
 })
 export default class extends Vue {
   get balancesData() {
-    return balances.balanceData
+    return balances.getBalanceData
+  }
+
+  get dateList() {
+    return balances.getDateList
   }
 
   get chartData() {
     const chartData: ChartData = {
       // 横軸のラベル
-      labels: balances.getDateList.map((d) => {
+      labels: this.dateList.map((d) => {
         return moment(d).format('YYYY-MM-DD')
       }),
       // データのリスト
-      datasets: [
-        balances.getBalanceDataSet(ChartDataType.BALANCE),
-        balances.getBalanceDataSet(ChartDataType.CHANGE),
-      ],
+      datasets: balances.getChartDatasets,
     }
-    console.log('fetched chartData')
-    console.log(chartData.datasets)
     return chartData
   }
 
