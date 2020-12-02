@@ -46,15 +46,13 @@ export default class extends Vue {
   }
 
   get chartOption() {
-    // チャートのオプション
     const chartOption: ChartOptions = {
-      // アスペクト比を固定しないように変更
       maintainAspectRatio: false,
       scales: {
         yAxes: [
           {
-            id: 'y-axis-1', // Y軸のID
-            position: 'left', // どちら側に表示される軸か？
+            id: 'y-axis-1',
+            position: 'left',
 
             ticks: {
               // suggestedMin:0,
