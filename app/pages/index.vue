@@ -47,12 +47,18 @@ export default class extends Vue {
   get chartOption() {
     const chartOption: ChartOptions = {
       maintainAspectRatio: false,
+      tooltips: {
+        callbacks: {
+          label(item) {
+            return item.yLabel!.toLocaleString()
+          },
+        },
+      },
       scales: {
         yAxes: [
           {
             id: 'y-axis-1',
             position: 'left',
-
             ticks: {
               // suggestedMin:0,
               callback(value, _index, _values) {

@@ -238,9 +238,18 @@ export default class balance extends VuexModule {
     })
     this.setChartDatasets({
       type: type === ChartDataType.BALANCE ? 'line' : 'bar',
-      label: type === ChartDataType.BALANCE ? 'Balance' : 'Change',
+      label: type === ChartDataType.BALANCE ? 'Balance' : 'Release',
       data: retData,
       yAxisID: type === ChartDataType.BALANCE ? 'y-axis-1' : 'y-axis-2',
+      pointRadius: 0,
+      borderColor:
+        type === ChartDataType.BALANCE
+          ? 'rgba(200,200,200,1)'
+          : 'rgba(253,174,107,0.8)',
+      backgroundColor:
+        type === ChartDataType.BALANCE
+          ? 'rgba(254,230,206,0.8)'
+          : 'rgba(253,174,107,0.8)',
     })
     console.log('getBalanceDataSet end')
   }
