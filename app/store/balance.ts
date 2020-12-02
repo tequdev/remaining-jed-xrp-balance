@@ -80,12 +80,12 @@ const TARGET_ADDRESS: Array<{ name: string; address: string }> = [
     address: 'r9kkWNia8PmpR44L7mWZn33Hpff3CCzLjA',
   },
 ]
-const startDate = moment(new Date())
-  .add(-1, 'days')
-  .add(-24, 'month')
+const startDate = moment()
+  .subtract(1, 'days')
+  .subtract(24, 'months')
   .utc()
-  .startOf('day')
-const endDate = moment(new Date()).add(-1, 'days').utc().startOf('day')
+  .startOf('days')
+const endDate = moment().subtract(1, 'days').utc().startOf('days')
 
 const fetchInitialBalance = async (address: {
   name: string
@@ -121,7 +121,9 @@ const fetchData = async (address: { name: string; address: string }) => {
         },
       }
     )
-
+    console.log(startDate.toISOString())
+    console.log(endDate.toISOString())
+    console.log(resData)
     resData.balance_changes.forEach((b) => {
       if (
         b.change_type === 'payment_source' ||
@@ -135,13 +137,11 @@ const fetchData = async (address: { name: string; address: string }) => {
               ? parseFloat(b.amount_change)
               : 0,
         }
+        console.log(data)
         processData.push(data)
       }
-      marker = resData.marker
-      if (marker !== undefined) {
-        console.log('marker: ' + marker)
-      }
     })
+    marker = resData.marker
   }
   console.log('fetchData END : ' + address.name)
   return processData
@@ -181,7 +181,11 @@ export default class balance extends VuexModule {
   @Action({ rawError: true })
   async fetchBalanceData() {
     const dates: Array<moment.Moment> = []
-    for (const d = startDate; d.isSameOrBefore(endDate); d.add(1, 'day')) {
+    for (
+      const d = startDate.clone();
+      d.isSameOrBefore(endDate);
+      d.add(1, 'day')
+    ) {
       dates.push(moment(new Date(d.toDate())))
     }
     this.setDateList(dates)
