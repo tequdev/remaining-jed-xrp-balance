@@ -1,5 +1,6 @@
 import { Module, VuexModule, Mutation, Action } from 'vuex-module-decorators'
 import moment from 'moment'
+import { ChartDataSets } from 'chart.js'
 import { $axios } from '../utils/api'
 
 const apiBaseUrl = 'https://data.ripple.com/'
@@ -10,7 +11,7 @@ export enum ChartDataType {
 }
 
 export type balanceChangeDataType = {
-  date: Date
+  date: moment.Moment
   balance: number
   change: number
 }
@@ -79,38 +80,36 @@ const TARGET_ADDRESS: Array<{ name: string; address: string }> = [
     address: 'r9kkWNia8PmpR44L7mWZn33Hpff3CCzLjA',
   },
 ]
-const startDate = moment(new Date())
-  .add(-1, 'days')
-  .add(-36, 'month')
+const startDate = moment()
+  .subtract(1, 'days')
+  .subtract(24, 'months')
   .utc()
-  .startOf('day')
-const endDate = moment(new Date()).add(-1, 'days').utc().startOf('day')
+  .startOf('days')
+const endDate = moment().subtract(1, 'days').utc().startOf('days')
 
 const fetchInitialBalance = async (address: {
   name: string
   address: string
 }) => {
-  console.log('startDate: ' + startDate.toISOString())
-  console.log('endData  : ' + endDate.toISOString())
+  console.log('fetchInitialBalance start : ' + address.name)
   const responseBalances: Promise<responseBalancesType> = $axios.$get(
     apiBaseUrl + 'v2/accounts/' + address.address + /balances/,
     { params: { date: startDate.toISOString(), currency: 'XRP' } }
   )
-  const initialBalance = await responseBalances
-    .then((resData) => {
-      return resData.balances[0].value
-    })
-    .catch(() => {
-      return '0'
-    })
-  return parseFloat(initialBalance)
+  console.log('fetchInitialBalance end : ' + address.name)
+  try {
+    return parseFloat((await responseBalances).balances[0].value)
+  } catch {
+    return 0
+  }
 }
 
 const fetchData = async (address: { name: string; address: string }) => {
+  console.log('fetchData start :' + address.name)
   const processData: Array<balanceChangeDataType> = []
   let marker: string | undefined = ''
   while (marker !== undefined) {
-    const responseBalanceChangeData: Promise<responseBalanceChangeType> = $axios.$get(
+    const resData: responseBalanceChangeType = await $axios.$get(
       apiBaseUrl + 'v2/accounts/' + address.address + /balance_changes/,
       {
         params: {
@@ -122,29 +121,29 @@ const fetchData = async (address: { name: string; address: string }) => {
         },
       }
     )
-
-    await responseBalanceChangeData.then((resData) => {
-      resData.balance_changes.forEach((b) => {
-        if (
-          b.change_type === 'payment_source' ||
-          b.change_type === 'payment_destination'
-        ) {
-          const data: balanceChangeDataType = {
-            date: moment(b.executed_time).utc().startOf('day').toDate(),
-            balance: parseFloat(b.final_balance),
-            // parseFloat(b.amount_change),
-            change:
-              b.change_type === 'payment_source'
-                ? parseFloat(b.amount_change)
-                : 0,
-          }
-          processData.push(data)
+    console.log(startDate.toISOString())
+    console.log(endDate.toISOString())
+    console.log(resData)
+    resData.balance_changes.forEach((b) => {
+      if (
+        b.change_type === 'payment_source' ||
+        b.change_type === 'payment_destination'
+      ) {
+        const data: balanceChangeDataType = {
+          date: moment(b.executed_time).utc().startOf('day'),
+          balance: parseFloat(b.final_balance),
+          change:
+            b.change_type === 'payment_source'
+              ? parseFloat(b.amount_change)
+              : 0,
         }
-      })
-      // console.log(address.name + ':::' + marker)
-      marker = resData.marker
+        console.log(data)
+        processData.push(data)
+      }
     })
+    marker = resData.marker
   }
+  console.log('fetchData END : ' + address.name)
   return processData
 }
 
@@ -156,6 +155,8 @@ const fetchData = async (address: { name: string; address: string }) => {
 export default class balance extends VuexModule {
   balanceData: balanceDataType[] = []
   initialBalanceData: number[] = []
+  chartDatasets: ChartDataSets[] = []
+  dateList: moment.Moment[] = []
 
   @Mutation
   appendExchangeData(data: balanceDataType) {
@@ -167,73 +168,102 @@ export default class balance extends VuexModule {
     this.initialBalanceData.push(data)
   }
 
+  @Mutation
+  setChartDatasets(data: ChartDataSets) {
+    this.chartDatasets.push(data)
+  }
+
+  @Mutation
+  setDateList(dates: moment.Moment[]) {
+    this.dateList = dates
+  }
+
   @Action({ rawError: true })
   async fetchBalanceData() {
-    for (const address of TARGET_ADDRESS) {
-      await fetchInitialBalance(address).then((initialBalance) => {
-        this.appendInitalBalanceData(initialBalance)
-      })
-      await fetchData(address).then((rtnData) => {
-        const appendData: balanceDataType = {
-          name: address.name,
-          address: address.address,
-          data: rtnData,
-        }
-        console.log(address.name + ' : ' + appendData.data.length)
-        this.appendExchangeData(appendData)
-      })
+    const dates: Array<moment.Moment> = []
+    for (
+      const d = startDate.clone();
+      d.isSameOrBefore(endDate);
+      d.add(1, 'day')
+    ) {
+      dates.push(moment(new Date(d.toDate())))
     }
-    // console.log('balanceData::count : ' + this.balanceData.length)
+    this.setDateList(dates)
+
+    for (const address of TARGET_ADDRESS) {
+      const rtnData = await fetchData(address)
+      const appendData: balanceDataType = {
+        name: address.name,
+        address: address.address,
+        data: rtnData,
+      }
+      this.appendExchangeData(appendData)
+
+      const initBlance = await fetchInitialBalance(address)
+      this.appendInitalBalanceData(initBlance)
+    }
+  }
+
+  @Action({ rawError: true })
+  getBalanceDataSet(type: ChartDataType) {
+    console.log('getBalanceDataSet start')
+    const befBalance: number[] = this.getInitialBalanceData
+    const retData = this.getDateList.map((date) => {
+      const balanceDataList = this.getBalanceData.map((data, balanceIdx) => {
+        const findData = data.data.find((d) => {
+          return moment(d.date).isSame(date)
+        })
+
+        const setBalance =
+          findData === undefined ? befBalance[balanceIdx] : findData.balance
+        const setChange = findData === undefined ? 0 : findData.change
+        befBalance[balanceIdx] =
+          findData === undefined ? befBalance[balanceIdx] : findData.balance
+
+        return type === ChartDataType.BALANCE ? setBalance : setChange
+      })
+      if (type === ChartDataType.BALANCE) {
+        return balanceDataList.reduce((sum, element) => {
+          return sum + element
+        })
+      } else {
+        return (
+          balanceDataList[
+            this.getBalanceData.findIndex((b) => {
+              return b.name === 'Jed(tacostand)'
+            })
+          ] * -1
+        )
+      }
+    })
+    this.setChartDatasets({
+      type: type === ChartDataType.BALANCE ? 'line' : 'bar',
+      label: type === ChartDataType.BALANCE ? 'Balance' : 'Release',
+      data: retData,
+      yAxisID: type === ChartDataType.BALANCE ? 'y-axis-1' : 'y-axis-2',
+      pointRadius: 0,
+      borderColor:
+        type === ChartDataType.BALANCE
+          ? 'rgba(200,200,200,1)'
+          : 'rgba(253,174,107,0.8)',
+      backgroundColor:
+        type === ChartDataType.BALANCE
+          ? 'rgba(254,230,206,0.8)'
+          : 'rgba(253,174,107,0.8)',
+    })
+    console.log('getBalanceDataSet end')
+  }
+
+  get getInitialBalanceData() {
+    return this.initialBalanceData
   }
 
   get getDateList() {
-    const dateList: Array<moment.Moment> = []
-    for (const d = startDate; d.isSameOrBefore(endDate); d.add(1, 'day')) {
-      dateList.push(moment(new Date(d.toDate())))
-    }
-    return dateList
+    return this.dateList
   }
 
-  get getBalanceDataSet() {
-    return (type: ChartDataType) => {
-      const befBalance: number[] = this.initialBalanceData
-      console.log(befBalance)
-      const retData = this.getDateList.map((date) => {
-        const balanceDataList = this.balanceData.map((data, balanceIdx) => {
-          const findData = data.data.find((d) => {
-            return moment(d.date).isSame(date)
-          })
-
-          const setBalance =
-            findData === undefined ? befBalance[balanceIdx] : findData.balance
-          const setChange = findData === undefined ? 0 : findData.change
-          befBalance[balanceIdx] =
-            findData === undefined ? befBalance[balanceIdx] : findData.balance
-
-          return type === ChartDataType.BALANCE ? setBalance : setChange
-        })
-        if (type === ChartDataType.BALANCE) {
-          return balanceDataList.reduce((sum, element) => {
-            return sum + element
-          })
-        } else {
-          return (
-            balanceDataList[
-              this.balanceData.findIndex((b) => {
-                return b.name === 'Jed(tacostand)'
-              })
-            ] * -1
-          )
-        }
-      })
-
-      return {
-        type: type === ChartDataType.BALANCE ? 'line' : 'bar',
-        label: type === ChartDataType.BALANCE ? 'Balance' : 'Change',
-        data: retData,
-        yAxisID: type === ChartDataType.BALANCE ? 'y-axis-1' : 'y-axis-2',
-      }
-    }
+  get getChartDatasets() {
+    return this.chartDatasets
   }
 
   get getBalanceData() {
