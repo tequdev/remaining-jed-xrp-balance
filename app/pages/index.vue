@@ -22,13 +22,12 @@
           <v-card-title class="py-3">
             {{ getAvergeChange(avg).toLocaleString() }}
           </v-card-title>
-          <v-card-subtitle class="my-4">
+          <v-card-subtitle class="py-4 pt-6">
             Estimated End Date :
             <span class="font-weight-medium">
               {{ estimatedDate(getAvergeChange(avg)) }}
             </span>
           </v-card-subtitle>
-          <v-card-text class="font-weight-medium"> </v-card-text>
         </v-card>
       </v-col>
     </v-row>
