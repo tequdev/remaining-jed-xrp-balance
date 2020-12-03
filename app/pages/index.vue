@@ -20,12 +20,14 @@
             }}
           </v-card-title>
           <v-card-title class="py-3">
-            {{ getAvergeChange(avg).toLocaleString() }}
+            {{ getAvergeChange(avg).toLocaleString() }} XRP
           </v-card-title>
           <v-card-subtitle class="py-4 pt-6">
-            Estimated End Date :
-            <span class="font-weight-medium">
+            Estimated End Date :<br />
+            <span class="font-weight-medium text-h6">
               {{ estimatedDate(getAvergeChange(avg)) }}
+              ({{ estimatedDaysleft(estimatedDate(getAvergeChange(avg))) }} Days
+              left )
             </span>
           </v-card-subtitle>
         </v-card>
@@ -96,6 +98,12 @@ export default class extends Vue {
     }
   }
 
+  get estimatedDaysleft() {
+    return (date: string) => {
+      return moment(date).diff(moment(), 'days')
+    }
+  }
+
   get getAvergeChange() {
     return (type: averageType) => {
       let dateLen: number
@@ -159,7 +167,7 @@ export default class extends Vue {
             ticks: {
               suggestedMin: 0,
               callback(value, _index, _values) {
-                return value.toLocaleString()
+                return ((value as number) / 1000000).toLocaleString() + ' m'
               },
             },
           },
@@ -168,7 +176,7 @@ export default class extends Vue {
             position: 'right',
             ticks: {
               callback(value, _index, _values) {
-                return value.toLocaleString()
+                return ((value as number) / 1000000).toLocaleString() + ' m'
               },
             },
           },
