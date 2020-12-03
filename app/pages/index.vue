@@ -10,7 +10,7 @@
     <v-row>
       <v-col v-for="avg in getAveraveTypeArray" :key="avg" cols="12" md="4">
         <v-card>
-          <v-card-title class="pb-0">
+          <v-card-title class="pb-0 text-h5">
             {{
               avg === getAveraveType.ThreeDay
                 ? '3 Days Average'
@@ -19,19 +19,48 @@
                 : '1 Month average'
             }}
           </v-card-title>
-          <v-card-title class="py-3">
+          <v-card-title class="py-3 text-center">
             {{ getAvergeChange(avg).toLocaleString() }} XRP
           </v-card-title>
           <v-card-subtitle class="py-4 pt-6">
             Estimated End Date :<br />
             <span class="font-weight-medium text-h6">
               {{ estimatedDate(getAvergeChange(avg)) }}
+            </span>
+            <span class="font-weight-medium text-h6 text-right">
               ({{ estimatedDaysleft(estimatedDate(getAvergeChange(avg))) }} Days
               left )
             </span>
           </v-card-subtitle>
         </v-card>
       </v-col>
+    </v-row>
+    <v-row class="mt-12">
+      <v-spacer />
+      <v-col cols="8" md="5">
+        <v-list>
+          <v-list-item-title class="title text-center">
+            Last 7days Release
+          </v-list-item-title>
+          <v-subheader class="title px-auto" />
+          <v-list-item
+            v-for="data in last7DaysChange"
+            :key="data.date.toString()"
+          >
+            <v-list-item-content class="px-auto">
+              <v-list-item-title class="text-center">
+                {{ data.date.format('YYYY-MM-DD') }}
+              </v-list-item-title>
+            </v-list-item-content>
+            <v-list-item-content class="px-auto">
+              <v-list-item-title class="text-center">
+                {{ parseInt(data.change.toString()).toLocaleString() }} XRP
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-col>
+      <v-spacer />
     </v-row>
   </div>
 </template>
@@ -86,12 +115,24 @@ export default class extends Vue {
     return balances.getChangeData
   }
 
+  get last7DaysChange() {
+    const dayCount = 7
+    return balances.getBalanceChangeData
+      .slice(dayCount * -1)
+      .reverse()
+      .map((change, index) => {
+        return {
+          date: moment()
+            .utc()
+            .subtract(index + 1, 'days')
+            .startOf('days'),
+          change,
+        }
+      })
+  }
+
   get estimatedDate() {
     return (average: number) => {
-      console.log(
-        'this.currentBalance - this.currentBalance / average:' +
-          (this.currentBalance / average).toString()
-      )
       return moment()
         .add(parseInt((this.currentBalance / average).toString()), 'days')
         .format('YYYY-MM-DD')

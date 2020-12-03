@@ -157,6 +157,7 @@ export default class balance extends VuexModule {
   initialBalanceData: number[] = []
   chartDatasets: ChartDataSets[] = []
   dateList: moment.Moment[] = []
+  balanceChangeData: number[] = []
 
   @Mutation
   appendExchangeData(data: balanceDataType) {
@@ -176,6 +177,11 @@ export default class balance extends VuexModule {
   @Mutation
   setDateList(dates: moment.Moment[]) {
     this.dateList = [...dates]
+  }
+
+  @Mutation
+  setBalanceChangeData(data: number[]) {
+    this.balanceChangeData = [...data]
   }
 
   @Action({ rawError: true })
@@ -236,6 +242,7 @@ export default class balance extends VuexModule {
         )
       }
     })
+    this.setBalanceChangeData([...retData])
     this.setChartDatasets({
       type: type === ChartDataType.BALANCE ? 'line' : 'bar',
       label: type === ChartDataType.BALANCE ? 'Balance' : 'Release',
@@ -260,6 +267,10 @@ export default class balance extends VuexModule {
 
   get getDateList() {
     return this.dateList
+  }
+
+  get getBalanceChangeData() {
+    return this.balanceChangeData
   }
 
   get getChartDatasets() {
