@@ -124,21 +124,46 @@ const fetchData = async (address: { name: string; address: string }) => {
     console.log(startDate.toISOString())
     console.log(endDate.toISOString())
     console.log(resData)
+    // eslint-disable-next-line camelcase
+    let nextFinalBalanceData: { final_balance?: number; date?: moment.Moment }
     resData.balance_changes.forEach((b) => {
-      if (
-        b.change_type === 'payment_source' ||
-        b.change_type === 'payment_destination'
-      ) {
+      if (b.change_type === 'payment_source') {
         const data: balanceChangeDataType = {
           date: moment(b.executed_time).utc().startOf('day'),
           balance: parseFloat(b.final_balance),
-          change:
-            b.change_type === 'payment_source'
-              ? parseFloat(b.amount_change)
-              : 0,
+          change: parseFloat(b.amount_change),
         }
-        console.log(data)
+        if (nextFinalBalanceData && nextFinalBalanceData.date) {
+          if (nextFinalBalanceData.date.isSame(data.date)) {
+            // payment_source comes after payment_destination at the same day
+            data.balance = nextFinalBalanceData.final_balance!
+          } else {
+            // payment_source comes after payment_destination at the different day
+            const befDataOnlyPaymentDestAtDay = {
+              date: nextFinalBalanceData.date,
+              balance: nextFinalBalanceData.final_balance!,
+              change: 0,
+            }
+            processData.push(befDataOnlyPaymentDestAtDay)
+          }
+        }
+        // console.log(data)
         processData.push(data)
+        nextFinalBalanceData = {}
+      } else if (b.change_type === 'payment_destination') {
+        if (
+          processData[processData.length - 1].date.isSame(
+            moment(b.executed_time).utc().startOf('day')
+          )
+        ) {
+          // when payment_destination comes after payment_source
+        } else {
+          // when payment_destination comes before payment_source
+          nextFinalBalanceData = {
+            final_balance: parseFloat(b.final_balance),
+            date: moment(b.executed_time).utc().startOf('day'),
+          }
+        }
       }
     })
     marker = resData.marker
