@@ -7,8 +7,7 @@ export default {
 
   // Global page headers (https://go.nuxtjs.dev/config-head)
   head: {
-    titleTemplate: '%s - xrp-jed-remaining-balance',
-    title: 'xrp-jed-remaining-balance',
+    title: 'Jed Balance',
     meta: [
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
