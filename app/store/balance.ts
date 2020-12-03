@@ -131,31 +131,32 @@ const fetchData = async (address: { name: string; address: string }) => {
         const data: balanceChangeDataType = {
           date: moment(b.executed_time).utc().startOf('day'),
           balance: parseFloat(b.final_balance),
-          change:
-            b.change_type === 'payment_source'
-              ? parseFloat(b.amount_change)
-              : 0,
+          change: parseFloat(b.amount_change),
         }
-        if (
-          nextFinalBalanceData &&
-          nextFinalBalanceData.date &&
-          nextFinalBalanceData.date.isSame(data.date)
-        ) {
-          data.balance = nextFinalBalanceData.final_balance!
+        if (nextFinalBalanceData && nextFinalBalanceData.date) {
+          if (nextFinalBalanceData.date.isSame(data.date)) {
+            // payment_source comes after payment_destination at the same day
+            data.balance = nextFinalBalanceData.final_balance!
+          } else {
+            // payment_source comes after payment_destination at the different day
+            const befDataOnlyPaymentDestAtDay = {
+              date: nextFinalBalanceData.date,
+              balance: nextFinalBalanceData.final_balance!,
+              change: 0,
+            }
+            processData.push(befDataOnlyPaymentDestAtDay)
+          }
         }
         // console.log(data)
         processData.push(data)
         nextFinalBalanceData = {}
       } else if (b.change_type === 'payment_destination') {
         if (
-          // when payment_destination comes after payment_source
           processData[processData.length - 1].date.isSame(
             moment(b.executed_time).utc().startOf('day')
           )
         ) {
-          processData[processData.length - 1].balance = parseFloat(
-            b.final_balance
-          )
+          // when payment_destination comes after payment_source
         } else {
           // when payment_destination comes before payment_source
           nextFinalBalanceData = {
