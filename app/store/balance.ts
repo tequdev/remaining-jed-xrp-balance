@@ -4,7 +4,7 @@ import { ChartDataSets } from 'chart.js'
 import { $axios } from '../utils/api'
 
 const apiBaseUrl = 'https://data.ripple.com/'
-
+export const strict = false
 export enum ChartDataType {
   BALANCE,
   CHANGE,
@@ -85,7 +85,7 @@ const startDate = moment()
   .subtract(24, 'months')
   .utc()
   .startOf('days')
-const endDate = moment().subtract(1, 'days').utc().startOf('days')
+const endDate = moment().subtract(1, 'days').utc().endOf('days')
 
 const fetchInitialBalance = async (address: {
   name: string
@@ -160,22 +160,22 @@ export default class balance extends VuexModule {
 
   @Mutation
   appendExchangeData(data: balanceDataType) {
-    this.balanceData.push(data)
+    this.balanceData = [...this.balanceData, data]
   }
 
   @Mutation
   appendInitalBalanceData(data: number) {
-    this.initialBalanceData.push(data)
+    this.initialBalanceData = [...this.initialBalanceData, data]
   }
 
   @Mutation
   setChartDatasets(data: ChartDataSets) {
-    this.chartDatasets.push(data)
+    this.chartDatasets = [...this.chartDatasets, data]
   }
 
   @Mutation
   setDateList(dates: moment.Moment[]) {
-    this.dateList = dates
+    this.dateList = [...dates]
   }
 
   @Action({ rawError: true })
@@ -188,7 +188,7 @@ export default class balance extends VuexModule {
     ) {
       dates.push(moment(new Date(d.toDate())))
     }
-    this.setDateList(dates)
+    this.setDateList([...dates])
 
     for (const address of TARGET_ADDRESS) {
       const rtnData = await fetchData(address)
@@ -197,7 +197,7 @@ export default class balance extends VuexModule {
         address: address.address,
         data: rtnData,
       }
-      this.appendExchangeData(appendData)
+      this.appendExchangeData({ ...appendData })
 
       const initBlance = await fetchInitialBalance(address)
       this.appendInitalBalanceData(initBlance)
