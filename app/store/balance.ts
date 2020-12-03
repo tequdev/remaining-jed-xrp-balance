@@ -124,11 +124,10 @@ const fetchData = async (address: { name: string; address: string }) => {
     console.log(startDate.toISOString())
     console.log(endDate.toISOString())
     console.log(resData)
+    // eslint-disable-next-line camelcase
+    let nextFinalBalanceData: { final_balance?: number; date?: moment.Moment }
     resData.balance_changes.forEach((b) => {
-      if (
-        b.change_type === 'payment_source' ||
-        b.change_type === 'payment_destination'
-      ) {
+      if (b.change_type === 'payment_source') {
         const data: balanceChangeDataType = {
           date: moment(b.executed_time).utc().startOf('day'),
           balance: parseFloat(b.final_balance),
@@ -137,8 +136,33 @@ const fetchData = async (address: { name: string; address: string }) => {
               ? parseFloat(b.amount_change)
               : 0,
         }
-        console.log(data)
+        if (
+          nextFinalBalanceData &&
+          nextFinalBalanceData.date &&
+          nextFinalBalanceData.date.isSame(data.date)
+        ) {
+          data.balance = nextFinalBalanceData.final_balance!
+        }
+        // console.log(data)
         processData.push(data)
+        nextFinalBalanceData = {}
+      } else if (b.change_type === 'payment_destination') {
+        if (
+          // when payment_destination comes after payment_source
+          processData[processData.length - 1].date.isSame(
+            moment(b.executed_time).utc().startOf('day')
+          )
+        ) {
+          processData[processData.length - 1].balance = parseFloat(
+            b.final_balance
+          )
+        } else {
+          // when payment_destination comes before payment_source
+          nextFinalBalanceData = {
+            final_balance: parseFloat(b.final_balance),
+            date: moment(b.executed_time).utc().startOf('day'),
+          }
+        }
       }
     })
     marker = resData.marker
