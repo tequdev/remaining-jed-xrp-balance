@@ -1,4 +1,5 @@
 import colors from 'vuetify/es5/util/colors'
+require('dotenv').config()
 
 export default {
   publicRuntimeConfig: {
@@ -39,6 +40,7 @@ export default {
     // https://go.nuxtjs.dev/vuetify
     '@nuxtjs/vuetify',
     '@nuxtjs/moment',
+    '@nuxtjs/dotenv',
     '@nuxtjs/google-analytics',
   ],
 
