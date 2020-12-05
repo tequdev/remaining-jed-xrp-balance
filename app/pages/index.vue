@@ -37,7 +37,7 @@
     </v-row>
     <v-row class="mt-12">
       <v-spacer />
-      <v-col cols="8" md="5">
+      <v-col cols="10" md="5">
         <v-list>
           <v-list-item-title class="title text-center">
             Last 7days Release
