@@ -12,11 +12,11 @@
         <v-card>
           <v-card-title class="pb-0 text-h5">
             {{
-              avg === getAveraveType.ThreeDay
-                ? '3 Days Average'
-                : avg === getAveraveType.Week
+              avg === getAveraveType.Week
                 ? '1 Week Average'
-                : '1 Month average'
+                : avg === getAveraveType.Month
+                ? '1 Month average'
+                : '3 Months average'
             }}
           </v-card-title>
           <v-card-title class="py-3 text-center">
@@ -40,11 +40,11 @@
       <v-col cols="10" md="5">
         <v-list>
           <v-list-item-title class="title text-center">
-            Last 7days Release
+            Last 30 days Release
           </v-list-item-title>
           <v-subheader class="title px-auto" />
           <v-list-item
-            v-for="data in last7DaysChange"
+            v-for="data in last30DaysChange"
             :key="data.date.toString()"
           >
             <v-list-item-content class="px-auto">
@@ -73,9 +73,10 @@ import { balances } from '../store/index'
 import { ChartDataType } from '../store/balance'
 
 enum averageType {
-  ThreeDay,
+  // ThreeDay,
   Week,
   Month,
+  Month3,
 }
 
 @Component({
@@ -89,11 +90,7 @@ enum averageType {
 export default class extends Vue {
   get getAveraveTypeArray() {
     const retArr: number[] = []
-    for (
-      let i: averageType = averageType.ThreeDay;
-      i <= averageType.Month;
-      i++
-    ) {
+    for (let i: averageType = averageType.Week; i <= averageType.Month3; i++) {
       retArr.push(i)
     }
     return retArr
@@ -115,8 +112,8 @@ export default class extends Vue {
     return balances.getChangeData
   }
 
-  get last7DaysChange() {
-    const dayCount = 7
+  get last30DaysChange() {
+    const dayCount = 30
     return balances.getBalanceChangeData
       .slice(dayCount * -1)
       .reverse()
@@ -149,14 +146,17 @@ export default class extends Vue {
     return (type: averageType) => {
       let dateLen: number
       switch (type) {
-        case averageType.ThreeDay:
-          dateLen = 3
-          break
+        // case averageType.ThreeDay:
+        //   dateLen = 3
+        //   break
         case averageType.Week:
           dateLen = 7
           break
         case averageType.Month:
           dateLen = 30
+          break
+        case averageType.Month3:
+          dateLen = 90
           break
         default:
           dateLen = 30
