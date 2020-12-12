@@ -152,6 +152,7 @@ const fetchData = async (address: { name: string; address: string }) => {
         nextFinalBalanceData = {}
       } else if (b.change_type === 'payment_destination') {
         if (
+          processData[processData.length - 1] &&
           processData[processData.length - 1].date.isSame(
             moment(b.executed_time).utc().startOf('day')
           )
