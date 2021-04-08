@@ -11,6 +11,16 @@
     <v-footer app absolute>
       <div class="mx-auto">
         <span>&copy; {{ new Date().getFullYear() }} develoQ</span>
+        <v-btn
+          href="https://twitter.com/XR_Q_P"
+          target="_blank"
+          icon
+          link
+          elevation="0"
+          small
+        >
+          <v-icon color="#1DA1F2">mdi-twitter</v-icon>
+        </v-btn>
       </div>
     </v-footer>
   </v-app>
