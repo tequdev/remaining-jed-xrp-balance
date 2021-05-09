@@ -8,7 +8,7 @@
       />
     </div>
     <v-row v-if="monetized" justify="center" class="mb-10">
-      <v-col cols="4" md="12">
+      <v-col xs="12" md="4">
         <v-card class="py-5">
           <v-card-title class="pb-0 text-h5 text-center">
             Remaining
