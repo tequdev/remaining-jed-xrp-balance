@@ -7,6 +7,18 @@
         :styles="chartStyles"
       />
     </div>
+    <v-row v-if="monetized" justify="center" class="mb-10">
+      <v-col xs="12" md="4">
+        <v-card class="py-5">
+          <v-card-title class="pb-0 text-h5 text-center">
+            Remaining
+          </v-card-title>
+          <v-card-title class="py-3 text-center">
+            {{ parseInt(currentBalance).toLocaleString() }} XRP
+          </v-card-title>
+        </v-card>
+      </v-col>
+    </v-row>
     <v-row>
       <v-col v-for="avg in getAveraveTypeArray" :key="avg" cols="12" md="4">
         <v-card>
@@ -235,5 +247,28 @@ export default class extends Vue {
     }
     return chartStyles
   }
+
+  monetized = false
+  mounted() {
+    if ((document as any).monetization) {
+      ;(document as any).monetization.addEventListener(
+        'monetizationprogress',
+        this.monetizeEvent
+      )
+      this.monetized = true
+    }
+  }
+
+  destroyed() {
+    if ((document as any).monetization) {
+      ;(document as any).monetization.removeEventListener(
+        'monetizationprogress',
+        this.monetizeEvent
+      )
+      this.monetized = false
+    }
+  }
+
+  monetizeEvent(_ev: any) {}
 }
 </script>
