@@ -172,10 +172,6 @@ const fetchData = async (address: { name: string; address: string }) => {
             moment(b.executed_time).utc().startOf('day')
           )
         ) {
-          // when payment_destination comes after payment_source at the same day
-          processData[processData.length - 1].balance = parseFloat(
-            b.final_balance
-          )
           processData[processData.length - 1].change += parseFloat(
             b.amount_change
           )
