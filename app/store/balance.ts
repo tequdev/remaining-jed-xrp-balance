@@ -124,8 +124,12 @@ const fetchData = async (address: { name: string; address: string }) => {
     console.log(startDate.toISOString())
     console.log(endDate.toISOString())
     console.log(resData)
-    // eslint-disable-next-line camelcase
-    let nextFinalBalanceData: { final_balance?: number; date?: moment.Moment }
+    let nextFinalBalanceData: {
+      // eslint-disable-next-line camelcase
+      final_balance?: number
+      date?: moment.Moment
+      change?: number
+    }
     resData.balance_changes.forEach((b) => {
       if (b.change_type === 'payment_source') {
         const data: balanceChangeDataType = {
@@ -133,23 +137,34 @@ const fetchData = async (address: { name: string; address: string }) => {
           balance: parseFloat(b.final_balance),
           change: parseFloat(b.amount_change),
         }
-        if (nextFinalBalanceData && nextFinalBalanceData.date) {
-          if (nextFinalBalanceData.date.isSame(data.date)) {
-            // payment_source comes after payment_destination at the same day
-            data.balance = nextFinalBalanceData.final_balance!
-          } else {
-            // payment_source comes after payment_destination at the different day
-            const befDataOnlyPaymentDestAtDay = {
-              date: nextFinalBalanceData.date,
-              balance: nextFinalBalanceData.final_balance!,
-              change: 0,
+        if (
+          processData[processData.length - 1] &&
+          processData[processData.length - 1].date.isSame(
+            moment(b.executed_time).utc().startOf('day')
+          )
+        ) {
+          processData[processData.length - 1].change += parseFloat(
+            b.amount_change
+          )
+        } else {
+          if (nextFinalBalanceData && nextFinalBalanceData.date) {
+            if (nextFinalBalanceData.date.isSame(data.date)) {
+              // payment_source comes after payment_destination at the same day
+              data.balance = nextFinalBalanceData.final_balance!
+              data.change += nextFinalBalanceData.change!
+            } else {
+              // payment_source comes after payment_destination at the different day
+              const befDataOnlyPaymentDestAtDay = {
+                date: nextFinalBalanceData.date,
+                balance: nextFinalBalanceData.final_balance!,
+                change: nextFinalBalanceData.change!,
+              }
+              processData.push(befDataOnlyPaymentDestAtDay)
             }
-            processData.push(befDataOnlyPaymentDestAtDay)
           }
+          processData.push(data)
+          nextFinalBalanceData = {}
         }
-        // console.log(data)
-        processData.push(data)
-        nextFinalBalanceData = {}
       } else if (b.change_type === 'payment_destination') {
         if (
           processData[processData.length - 1] &&
@@ -157,11 +172,40 @@ const fetchData = async (address: { name: string; address: string }) => {
             moment(b.executed_time).utc().startOf('day')
           )
         ) {
-          // when payment_destination comes after payment_source
+          processData[processData.length - 1].change += parseFloat(
+            b.amount_change
+          )
+        } else if (nextFinalBalanceData && nextFinalBalanceData.date) {
+          // when payment_destination comes after payment_destionation
+          if (
+            nextFinalBalanceData.date.isSame(
+              moment(b.executed_time).utc().startOf('day')
+            )
+          ) {
+            // at the same day
+            nextFinalBalanceData = {
+              ...nextFinalBalanceData,
+              change:
+                nextFinalBalanceData.change! + parseFloat(b.amount_change),
+            }
+          } else {
+            // at the diff day
+            const befDataOnlyPaymentDestAtDay = {
+              date: nextFinalBalanceData.date!,
+              balance: nextFinalBalanceData.final_balance!,
+              change: nextFinalBalanceData.change!,
+            }
+            processData.push(befDataOnlyPaymentDestAtDay)
+            nextFinalBalanceData = {
+              final_balance: parseFloat(b.final_balance),
+              change: parseFloat(b.amount_change),
+              date: moment(b.executed_time).utc().startOf('day'),
+            }
+          }
         } else {
-          // when payment_destination comes before payment_source
           nextFinalBalanceData = {
             final_balance: parseFloat(b.final_balance),
+            change: parseFloat(b.amount_change),
             date: moment(b.executed_time).utc().startOf('day'),
           }
         }
@@ -260,11 +304,9 @@ export default class balance extends VuexModule {
         })
       } else {
         return (
-          balanceDataList[
-            this.getBalanceData.findIndex((b) => {
-              return b.name === 'Jed(tacostand)'
-            })
-          ] * -1
+          balanceDataList.reduce((sum, element) => {
+            return sum + element
+          }) * -1
         )
       }
     })
