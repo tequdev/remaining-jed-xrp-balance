@@ -18,7 +18,24 @@ export default {
     meta: [
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: '' },
+      {
+        name: 'description',
+        content: 'Show the XRP balance held by Jed McCaleb.',
+      },
+      { property: 'og:site_name', content: 'Jed Balance' },
+      { property: 'og:type', content: 'website' },
+      { property: 'og:title', content: 'Jed Balance' },
+      {
+        property: 'og:description',
+        content: 'Show the XRP balance held by Jed McCaleb.',
+      },
+      { property: 'og:url', content: 'https://jed.tequ.dev' },
+      {
+        property: 'og:image',
+        content: 'https://jed.tequ.dev/ogp/summary_large_image.png',
+      },
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:creator', content: '@_TeQu_' },
       { name: 'monetization', content: process.env.MONETIZATION },
     ],
     link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
