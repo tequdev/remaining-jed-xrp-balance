@@ -10,9 +10,9 @@
     </v-main>
     <v-footer app absolute>
       <div class="mx-auto">
-        <span>&copy; {{ new Date().getFullYear() }} develoQ</span>
+        <span>&copy; {{ new Date().getFullYear() }} TeQu</span>
         <v-btn
-          href="https://twitter.com/XR_Q_P"
+          href="https://twitter.com/_TeQu_"
           target="_blank"
           icon
           link
