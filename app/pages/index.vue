@@ -7,7 +7,7 @@
         :styles="chartStyles"
       />
     </div>
-    <v-row v-if="monetized" justify="center" class="mb-10">
+    <v-row justify="center" class="mb-10">
       <v-col xs="12" md="4">
         <v-card class="py-5">
           <v-card-title class="pb-0 text-h5 text-center">
@@ -248,26 +248,26 @@ export default class extends Vue {
     return chartStyles
   }
 
-  monetized = false
-  mounted() {
-    if ((document as any).monetization) {
-      ;(document as any).monetization.addEventListener(
-        'monetizationprogress',
-        this.monetizeEvent
-      )
-      this.monetized = true
-    }
-  }
+  // monetized = false
+  // mounted() {
+  //   if ((document as any).monetization) {
+  //     ;(document as any).monetization.addEventListener(
+  //       'monetizationprogress',
+  //       this.monetizeEvent
+  //     )
+  //     this.monetized = true
+  //   }
+  // }
 
-  destroyed() {
-    if ((document as any).monetization) {
-      ;(document as any).monetization.removeEventListener(
-        'monetizationprogress',
-        this.monetizeEvent
-      )
-      this.monetized = false
-    }
-  }
+  // destroyed() {
+  //   if ((document as any).monetization) {
+  //     ;(document as any).monetization.removeEventListener(
+  //       'monetizationprogress',
+  //       this.monetizeEvent
+  //     )
+  //     this.monetized = false
+  //   }
+  // }
 
   monetizeEvent(_ev: any) {}
 }
