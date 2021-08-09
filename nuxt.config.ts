@@ -39,6 +39,12 @@ export default {
       { name: 'monetization', content: process.env.MONETIZATION },
     ],
     link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
+    script: [
+      {
+        src: 'https://donate.xumm.community/donateViaXumm.js',
+        defer: true,
+      },
+    ],
   },
 
   // Global CSS (https://go.nuxtjs.dev/config-css)
