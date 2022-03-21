@@ -108,6 +108,12 @@ const fetchData = async (address: { name: string; address: string }) => {
   console.log('fetchData start :' + address.name)
   const processData: Array<balanceChangeDataType> = []
   let marker: string | undefined = ''
+  let nextFinalBalanceData: {
+    // eslint-disable-next-line camelcase
+    final_balance?: number
+    date?: moment.Moment
+    change?: number
+  }
   while (marker !== undefined) {
     const resData: responseBalanceChangeType = await $axios.$get(
       apiBaseUrl + 'v2/accounts/' + address.address + /balance_changes/,
@@ -124,12 +130,6 @@ const fetchData = async (address: { name: string; address: string }) => {
     console.log(startDate.toISOString())
     console.log(endDate.toISOString())
     console.log(resData)
-    let nextFinalBalanceData: {
-      // eslint-disable-next-line camelcase
-      final_balance?: number
-      date?: moment.Moment
-      change?: number
-    }
     resData.balance_changes.forEach((b) => {
       if (b.change_type === 'payment_source') {
         const data: balanceChangeDataType = {
