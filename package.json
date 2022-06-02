@@ -19,7 +19,8 @@
     "nuxt": "^2.14.5",
     "nuxt-property-decorator": "^2.7.2",
     "vue-chartjs": "^3.5.1",
-    "vuex-module-decorators": "^1.0.1"
+    "vuex-module-decorators": "^1.0.1",
+    "xrpl-client": "^1.9.5"
   },
   "devDependencies": {
     "@nuxt/types": "^2.14.5",
