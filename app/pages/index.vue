@@ -11,10 +11,24 @@
       <v-col xs="12" md="4">
         <v-card class="py-5">
           <v-card-title class="pb-0 text-h5 text-center">
-            Remaining
+            Remaining (at UTC 0:00)
           </v-card-title>
           <v-card-title class="py-3 text-center">
             {{ parseInt(currentBalance).toLocaleString() }} XRP
+          </v-card-title>
+        </v-card>
+      </v-col>
+      <v-col xs="12" md="4">
+        <v-card class="py-5">
+          <v-card-title class="pb-0 text-h5 text-center">
+            Remaining (RealTime)
+          </v-card-title>
+          <v-card-title class="py-3 text-center">
+            {{
+              realTimeBalance
+                ? `${parseInt(realTimeBalance).toLocaleString()} XRP`
+                : `loading...`
+            }}
           </v-card-title>
         </v-card>
       </v-col>
@@ -97,6 +111,9 @@ enum averageType {
       balances.getBalanceDataSet(ChartDataType.BALANCE)
       balances.getBalanceDataSet(ChartDataType.CHANGE)
     })
+  },
+  async mounted() {
+    await balances.getRealtimeBalance()
   },
 })
 export default class extends Vue {
@@ -188,6 +205,10 @@ export default class extends Vue {
     return balances.getChartDatasets[0].data![
       balances.getChartDatasets[0].data!.length - 1
     ] as number
+  }
+
+  get realTimeBalance() {
+    return balances.realTimeBalance
   }
 
   get chartData() {

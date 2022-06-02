@@ -1,7 +1,10 @@
 import { Module, VuexModule, Mutation, Action } from 'vuex-module-decorators'
 import moment from 'moment'
 import { ChartDataSets } from 'chart.js'
+import { XrplClient } from 'xrpl-client'
 import { $axios } from '../utils/api'
+
+const client = new XrplClient()
 
 const apiBaseUrl = 'https://data.ripple.com/'
 export const strict = false
@@ -228,6 +231,7 @@ export default class balance extends VuexModule {
   chartDatasets: ChartDataSets[] = []
   dateList: moment.Moment[] = []
   balanceChangeData: number[] = []
+  realTimeBalanceData: number | null = null
 
   @Mutation
   appendExchangeData(data: balanceDataType) {
@@ -252,6 +256,11 @@ export default class balance extends VuexModule {
   @Mutation
   setBalanceChangeData(data: number[]) {
     this.balanceChangeData = [...data]
+  }
+
+  @Mutation
+  setRealTimeBalanceData(data: number) {
+    this.realTimeBalanceData = data
   }
 
   @Action({ rawError: true })
@@ -327,6 +336,34 @@ export default class balance extends VuexModule {
           : 'rgba(253,174,107,0.8)',
     })
     console.log('getBalanceDataSet end')
+  }
+
+  @Action({ rawError: true })
+  async getRealtimeBalance() {
+    const balances = await Promise.all(
+      TARGET_ADDRESS.map((data) => {
+        return (
+          client
+            .send({
+              command: 'account_info',
+              account: data.address,
+            })
+            // eslint-disable-next-line camelcase
+            .then(({ account_data }) => {
+              console.log(account_data)
+              return parseInt(account_data.Balance) / 100000
+            })
+        )
+      })
+    )
+    const realtimeBalance = balances.reduce((prev, cur) => {
+      return prev + cur
+    }, 0)
+    this.setRealTimeBalanceData(realtimeBalance)
+  }
+
+  get realTimeBalance() {
+    return this.realTimeBalanceData
   }
 
   get getInitialBalanceData() {
