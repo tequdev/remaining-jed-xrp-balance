@@ -351,7 +351,7 @@ export default class balance extends VuexModule {
             // eslint-disable-next-line camelcase
             .then(({ account_data }) => {
               console.log(account_data)
-              return parseInt(account_data.Balance) / 100000
+              return parseInt(account_data.Balance) / 1000000
             })
         )
       })
