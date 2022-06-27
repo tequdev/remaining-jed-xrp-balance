@@ -8,20 +8,20 @@
       />
     </div>
     <v-row justify="center" class="mb-10">
-      <v-col xs="12" md="4">
+      <v-col cols="12" lg="4">
         <v-card class="py-5">
           <v-card-title class="pb-0 text-h5 text-center">
-            Remaining (at UTC 0:00)
+            Remaining &nbsp; <span>(at UTC 0:00)</span>
           </v-card-title>
           <v-card-title class="py-3 text-center">
             {{ parseInt(currentBalance).toLocaleString() }} XRP
           </v-card-title>
         </v-card>
       </v-col>
-      <v-col xs="12" md="4">
+      <v-col cols="12" lg="4">
         <v-card class="py-5">
           <v-card-title class="pb-0 text-h5 text-center">
-            Remaining (RealTime)
+            Remaining &nbsp; <span>(RealTime)</span>
           </v-card-title>
           <v-card-title class="py-3 text-center">
             {{
