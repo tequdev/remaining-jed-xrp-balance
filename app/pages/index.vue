@@ -160,7 +160,7 @@ export default class extends Vue {
   get estimatedDate() {
     return (average: number) => {
       return moment()
-        .add(parseInt((this.currentBalance / average).toString()), 'days')
+        .add(Math.ceil(this.currentBalance / average), 'days')
         .format('YYYY-MM-DD')
     }
   }
