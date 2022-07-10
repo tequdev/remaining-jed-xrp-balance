@@ -8,11 +8,13 @@
       />
     </div>
     <v-row justify="center" class="mb-10">
+      <v-col cols="12"> <h3>Remaining</h3> </v-col>
       <v-col cols="12" lg="4">
         <v-card class="py-5">
           <v-card-title class="pb-0 text-h5 text-center">
             Remaining &nbsp; <span>(at UTC 0:00)</span>
           </v-card-title>
+          <v-card-text>&nbsp;</v-card-text>
           <v-card-title class="py-3 text-center">
             {{ parseInt(currentBalance).toLocaleString() }} XRP
           </v-card-title>
@@ -23,6 +25,7 @@
           <v-card-title class="pb-0 text-h5 text-center">
             Remaining &nbsp; <span>(RealTime)</span>
           </v-card-title>
+          <v-card-text>tacostand Wallet, etc.</v-card-text>
           <v-card-title class="py-3 text-center">
             {{
               realTimeBalance
@@ -32,8 +35,24 @@
           </v-card-title>
         </v-card>
       </v-col>
+      <v-col cols="12" lg="4">
+        <v-card class="py-5">
+          <v-card-title class="pb-0 text-h5 text-center">
+            Remaining &nbsp; <span>(RealTime)</span>
+          </v-card-title>
+          <v-card-text>Wallet for Dex trade (XRP -> USD)</v-card-text>
+          <v-card-title class="py-3 text-center">
+            {{
+              realTimeDexTradeBalance
+                ? `${parseInt(realTimeDexTradeBalance).toLocaleString()} XRP`
+                : `loading...`
+            }}
+          </v-card-title>
+        </v-card>
+      </v-col>
     </v-row>
     <v-row>
+      <v-col cols="12"><h3>Average</h3></v-col>
       <v-col v-for="avg in getAveraveTypeArray" :key="avg" cols="12" md="4">
         <v-card>
           <v-card-title class="pb-0 text-h5">
@@ -41,8 +60,8 @@
               avg === getAveraveType.Week
                 ? '1 Week Average'
                 : avg === getAveraveType.Month
-                ? '1 Month average'
-                : '3 Months average'
+                ? '1 Month Average'
+                : '3 Months Average'
             }}
           </v-card-title>
           <v-card-title class="py-3 text-center">
@@ -114,6 +133,7 @@ enum averageType {
   },
   async mounted() {
     await balances.getRealtimeBalance()
+    await balances.getRealtimeDexAccountBalance()
   },
 })
 export default class extends Vue {
@@ -209,6 +229,10 @@ export default class extends Vue {
 
   get realTimeBalance() {
     return balances.realTimeBalance
+  }
+
+  get realTimeDexTradeBalance() {
+    return balances.realTimeDexAccountBalance
   }
 
   get chartData() {
