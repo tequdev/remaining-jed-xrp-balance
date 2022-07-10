@@ -232,6 +232,7 @@ export default class balance extends VuexModule {
   dateList: moment.Moment[] = []
   balanceChangeData: number[] = []
   realTimeBalanceData: number | null = null
+  realTimeDexAccountBalanceData: number | null = null
 
   @Mutation
   appendExchangeData(data: balanceDataType) {
@@ -261,6 +262,11 @@ export default class balance extends VuexModule {
   @Mutation
   setRealTimeBalanceData(data: number) {
     this.realTimeBalanceData = data
+  }
+
+  @Mutation
+  setRealTimeDexAccountBalanceData(data: number) {
+    this.realTimeDexAccountBalanceData = data
   }
 
   @Action({ rawError: true })
@@ -347,6 +353,7 @@ export default class balance extends VuexModule {
             .send({
               command: 'account_info',
               account: data.address,
+              id: 'tacostand',
             })
             // eslint-disable-next-line camelcase
             .then(({ account_data }) => {
@@ -362,8 +369,29 @@ export default class balance extends VuexModule {
     this.setRealTimeBalanceData(realtimeBalance)
   }
 
+  @Action({ rawError: true })
+  async getRealtimeDexAccountBalance() {
+    const balance = await client
+      .send({
+        command: 'account_info',
+        account: 'rwsiRpi2PQmyhjeg48wNGyXPNRtGhgyURJ',
+        id: 'dexAccount',
+      })
+      // eslint-disable-next-line camelcase
+      .then(({ account_data }) => {
+        console.log(account_data)
+        return parseInt(account_data.Balance) / 1000000
+      })
+
+    this.setRealTimeDexAccountBalanceData(balance)
+  }
+
   get realTimeBalance() {
     return this.realTimeBalanceData
+  }
+
+  get realTimeDexAccountBalance() {
+    return this.realTimeDexAccountBalanceData
   }
 
   get getInitialBalanceData() {
